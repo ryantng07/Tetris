@@ -1,0 +1,957 @@
+import pygame
+import time
+import random
+#make sure to check diagonal for shapes and fix that random bug
+pygame.init() #allow pygame to run
+display_width = 600
+display_height = 450
+white = (255,255,255)
+black = (0,0,0)
+boxsize = 20
+gameDisplay = pygame.display.set_mode((display_width,display_height))
+boardwidth = 10
+boardheight = 22
+sidemargin = (display_width - boardwidth * boxsize) / 2
+topmargin = display_height - ((boardheight)* boxsize) - 5
+speed = 0.2
+
+boardborder = pygame.draw.rect(gameDisplay,white,[sidemargin-10,topmargin-10,(boxsize * boardwidth)+10, (boardheight*boxsize)+10],5) #draws the border of the game
+
+pygame.display.set_caption('Tetris') #names the window
+
+clock = pygame.time.Clock()
+
+def shift_board_down(board,row): #shifts board down when line clears
+	x = board[row:row+1]
+	firstlst = board[0:row]
+	secondlst = board[row+1:boardheight]
+	newboard = x + firstlst + secondlst
+	return newboard #creates updated board
+
+
+def clear_line(board,x): #clear line when it is filled
+	for i in range(boardheight):
+		if 0 not in board[i]:
+			x += 1
+			for j in range(boardwidth):
+				board[i][j] = 0			
+			board = shift_board_down(board,i) #shifts board down when cleared
+	return board,x
+
+
+def new_board(): #makes a 2D list full of rectangles
+	board = []
+	for row in range(0,boardheight):
+		board.append([])
+		for column in range(0,boardwidth):
+			board[row].append(0)
+	return board
+
+def draw_board(board,color,x,y,x2,y2,shape): #draws in board
+	pygame.draw.rect(gameDisplay,white,[sidemargin-10,topmargin-10,(boxsize * boardwidth)+8, (boardheight*boxsize)+8],5)
+	#draw individual boxes in the board
+	make_shape(x,y,shape,board)
+	ogcolor = color
+	for row in range(2,boardheight):	
+		for column in range(boardwidth):
+			color = ogcolor
+			if board[row][column] == 1:
+				color = black #choose_color(shape) 
+			pygame.draw.rect(gameDisplay,color,[(sidemargin-10+4)+(boxsize*column),(topmargin-10+4)+(boxsize*row),boxsize,boxsize])
+
+def choose_shape(): #assigns a number to each shape and generates a random number to make a random shape made
+	shape_dic = { 1:"o",2:"l",3:"s",4:"z",5:"i",6:"j",7:"t"}
+	num = random.randrange(1,8)
+	return shape_dic[num]
+
+def x_start(shape): #start of row
+	x = 2
+	return x
+
+
+def make_shape(row,column,shape,board): # draws the templates for every shape and rotated shape
+	if shape == "o":
+		board[row][column]=1
+		board[row+1][column]=1
+		board[row][column+1]=1
+		board[row+1][column+1]=1
+	if shape == "l":
+		board[row][column]=1
+		board[row+1][column]=1
+		board[row+2][column]=1
+		board[row+3][column]=1
+	if shape == "s":
+		board[row][column]=1
+		board[row+1][column]=1
+		board[row+1][column-1]=1
+		board[row][column+1]=1
+	if shape == "z":
+		board[row][column]=1
+		board[row][column-1]=1
+		board[row+1][column]=1
+		board[row+1][column+1]=1
+	if shape == "i":
+		board[row][column]=1
+		board[row+1][column]=1
+		board[row+2][column]=1
+		board[row+2][column+1]=1
+	if shape == "j":
+		board[row][column]=1
+		board[row+1][column]=1
+		board[row+2][column]=1
+		board[row+2][column-1]=1
+	if shape == "t":
+		board[row][column]=1
+		board[row+1][column]=1
+		board[row+1][column+1]=1
+		board[row+1][column-1]=1
+	if shape == "l2":
+		board[row][column] = 1
+		board[row][column+1] = 1
+		board[row][column+2]=1
+		board[row][column-1]=1	
+	if shape == "s2":
+		board[row][column]=1
+		board[row-1][column]=1
+		board[row][column+1]=1
+		board[row+1][column+1]=1
+	if shape == "z2":
+		board[row][column] = 1
+		board[row][column+1] = 1
+		board[row-1][column+1] = 1
+		board[row+1][column] = 1
+	if shape == "t2":
+		board[row][column] = 1
+		board[row+1][column] = 1
+		board[row+2][column] = 1
+		board[row+1][column+1] = 1
+	if shape == "t3":
+		board[row+1][column] = 1
+		board[row+2][column] = 1
+		board[row+1][column+1] = 1
+		board[row+1][column-1] = 1
+	if shape == "t4":
+		board[row][column] = 1
+		board[row+2][column] = 1
+		board[row+1][column] = 1
+		board[row+1][column-1] = 1
+	if shape == "j2":
+		board[row][column-1] = 1
+		board[row+1][column+1] = 1
+		board[row+1][column-1] = 1
+		board[row+1][column] = 1
+	if shape == "j3":
+		board[row][column] = 1
+		board[row][column+1] = 1
+		board[row+1][column] = 1
+		board[row+2][column] = 1
+	if shape == "j4":
+		board[row+1][column] = 1
+		board[row+1][column+1] = 1
+		board[row+1][column-1] = 1
+		board[row+2][column+1] = 1
+	if shape == "i2":
+		board[row+1][column] = 1
+		board[row+1][column+1] = 1
+		board[row+2][column-1] = 1
+		board[row+1][column-1] = 1
+	if shape == "i3":
+		board[row][column] = 1
+		board[row][column-1] = 1
+		board[row+1][column] = 1
+		board[row+2][column] = 1
+	if shape == "i4":
+		board[row][column+1] = 1
+		board[row+1][column+1] = 1
+		board[row+1][column-1] = 1
+		board[row+1][column] = 1
+def find_x2(shape,x,x2): #finds the previous row
+	return x - 1
+
+def text_objects(text,font,color): #makes the text for the losing screen
+	textSurface = font.render(text, True, color)
+	return textSurface, textSurface.get_rect()
+
+def message_display(text): # displays the message of the lose screen
+	largeText = pygame.font.Font('freesansbold.ttf', 115)
+	TextSurf, TextRect = text_objects(text, largeText, (255,0,0))
+	TextRect.center = ((display_width/2), (display_height/2))
+	gameDisplay.blit(TextSurf, TextRect)
+
+	pygame.display.update()
+
+	time.sleep(5)
+
+	tetris()
+
+def end_game():#end game
+	message_display('You Lose')
+
+def lines_made(count):#count lines made
+	font = pygame.font.SysFont(None,25)
+	text = font.render("Lines Cleared: " + str(count),True,white)
+	gameDisplay.blit(text,(0,0))
+
+def start_menu(): #creates a start screen
+	intro = True
+
+	while intro: #the loop for the intro screen, creates all the texts in the beginning		
+		gameDisplay.fill(black)
+		largeText = pygame.font.Font('freesansbold.ttf',115)
+		smallText =  pygame.font.Font('freesansbold.ttf',30)
+		TextSurf, TextRect = text_objects("Tetris", largeText, white)
+		TextRect.center = ((display_width/2), (display_height/2))
+		TextSurf2, TextRect2 = text_objects("Press any key to start", smallText, white)
+		TextRect2.center = ((display_width/2), (display_height/2 + 70))
+		gameDisplay.blit(TextSurf2, TextRect2)
+		gameDisplay.blit(TextSurf, TextRect)
+		pygame.display.update()
+		clock.tick(15)
+		for event in pygame.event.get(): #checks to see if event occurs
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
+			if event.type == pygame.KEYDOWN: #if key down, game loop (tetris) starts
+				print(event)
+				tetris()
+
+			
+
+def tetris(): #game loop
+	gameExit = False
+	board = new_board()
+	start_time = time.time()
+	shape = "l" #choose_shape()
+	x = x_start(shape)
+	y = 4
+	x2 = 0
+	y2 = y
+	lines = 0
+	while not gameExit:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
+			if event.type == pygame.KEYDOWN:
+				#rotates the shape and checks for all of them
+				if event.key == pygame.K_UP:
+
+					if shape == "i" and y > 0:
+						shape = "i2"
+						board[x][y]=0
+						board[x+1][y]=0
+						board[x+2][y]=0
+						board[x+2][y+1]=0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "i2":
+						shape = "i3"
+						board[x+1][y] = 0
+						board[x+1][y+1] = 0
+						board[x+2][y-1] = 0
+						board[x+1][y-1] = 0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "i3":
+						shape = "i4"
+						board[x][y] = 0
+						board[x][y+1] = 0
+						board[x][y+2] = 0
+						board[x][y-1] = 0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "i4":
+						shape = "i"
+						board[x][y+1] = 0
+						board[x+1][y+1] = 0
+						board[x+1][y-1] = 0
+						board[x+1][y] = 0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "j" and y < boardwidth - 1 :
+						shape = "j2"
+						board[x][y]=0
+						board[x+1][y]=0
+						board[x+2][y]=0
+						board[x+2][y-1]=0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "j2":
+						shape = "j3"
+						board[x][y-1] = 0
+						board[x+1][y+1] = 0
+						board[x+1][y-1] = 0
+						board[x+1][y] = 0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "j3":
+						shape = "j4"
+						board[x][y] = 0
+						board[x][y+1] = 0
+						board[x+1][y] = 0
+						board[x+2][y] = 0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "j4":
+						shape = "j"
+						board[x+1][y] = 0
+						board[x+1][y+1] = 0
+						board[x+1][y-1] = 0
+						board[x+2][y+1] = 0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "t":
+						shape = "t2"
+						board[x][y]=0
+						board[x+1][y]=0
+						board[x+1][y+1]=0
+						board[x+1][y-1]=0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "t2":
+						shape = "t3"
+						board[x][y] = 0
+						board[x+1][y] = 0
+						board[x+2][y] = 0
+						board[x+1][y+1] = 0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "t3":
+						shape = "t4"
+						board[x+1][y] = 0
+						board[x+2][y] = 0
+						board[x+1][y+1] = 0
+						board[x+1][y-1] = 0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+
+					elif shape == "t4":
+						shape = "t"
+						board[x][y] = 0
+						board[x+2][y] = 0
+						board[x+1][y] = 0
+						board[x+1][y-1] = 0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "z":
+						shape = "z2"
+						board[x][y-1]=0
+						board[x+1][y]=0
+						board[x+1][y+1]=0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "z2":
+						shape = "z"
+						board[x][y+1]=0
+						board[x-1][y+1]=0
+						board[x+1][y]=0
+
+					elif shape == "l" and y > 0 and y < boardwidth-2:
+						shape = "l2"
+						board[x+1][y]=0
+						board[x+2][y]=0
+						board[x+3][y]=0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "l2":
+						shape = "l"
+						board[x][y+1] = 0
+						board[x][y+2]=0
+						board[x][y-1]=0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "s":
+						shape = "s2"
+						board[x][y]=0
+						board[x+1][y]=0
+						board[x+1][y-1]=0
+						board[x][y+1]=0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+					elif shape == "s2":
+						shape = "s"
+						board[x][y]=0
+						board[x-1][y]=0
+						board[x][y+1]=0
+						board[x+1][y+1]=0
+						draw_board(board,white,x,y,x2,y2,shape)
+
+				#moves right and checks conditions
+				if event.key == pygame.K_RIGHT :
+
+					if shape == "i2" and y < boardwidth - 2 and board[x+1][y+2] == 0:
+						y+=1
+						y2=y-1
+						board[x+1][y2-1]=0
+
+					if shape == "i3" and y < boardwidth - 1 and board[x][y+1] == 0:
+						y+=1
+						y2=y-1
+						board[x][y2]=0
+						board[x+1][y2]=0
+
+					if shape == "i4" and y < boardwidth - 2 and board[x][y+2] == 0 and board[x+1][y+2] == 0:
+						y+=1
+						y2=y-1
+						board[x][y2+1]=0
+
+					if shape == "j2" and y < boardwidth - 2 and board[x+1][y+2] == 0:
+						y+=1
+						y2=y-1
+						board[x][y2-1] = 0
+
+					if shape == "j3" and y < boardwidth - 2 and board[x][y+2] == 0:
+						y+=1
+						y2=y-1
+						board[x][y2] = 0
+						board[x+1][y2] = 0
+
+					if shape == "j4" and y < boardwidth - 2 and board[x+1][y+2] == 0 and board[x+2][y+2] == 0:
+						y+=1
+						y2=y-1
+
+					if shape == "t2" and y < boardwidth - 2 and board[x+1][y+2] == 0:
+						y+=1
+						y2=y-1
+						board[x][y2] = 0
+						board[x-1][y2] = 0
+						board[x+1][y2] = 0
+
+					if shape == "t3" and y < boardwidth - 2 and board[x+1][y+2] == 0:
+						y+=1
+						y2=y-1
+						board[x][y2] = 0
+						board[x][y2-1] = 0
+
+					if shape == "t4" and y < boardwidth - 1 and board[x][y+1] == 0:
+						y+=1
+						y2=y-1
+						board[x][y2] = 0
+						board[x][y2] = 0
+						board[x][y2] = 0
+
+					if shape == "z2" and y < boardwidth - 2 and board[x][y+2] == 0:
+						y+=1
+						y2=y-1
+						board[x][y2] = 0
+						board[x-1][y2+1] = 0
+
+					if shape == "s2" and y < boardwidth - 2 and board[x][y+2] == 0:
+						y+=1
+						y2 = y-1
+						board[x-1][y2] = 0
+					if shape == "l2"  and y < boardwidth - 3 and board[x][y+3] == 0:
+						y += 1
+						y2 = y-1
+
+					if shape == "t" and y < boardwidth - 2 and board[x+1][y+1] == 0:
+						y += 1
+						y2 = y-1
+						board[x-1][y2] = 0
+						board[x-2][y2] = 0
+						board[x][y2] = 0
+
+					if shape == "z" and y < boardwidth - 2 and board[x+1][y+1] == 0:
+						y += 1
+						y2 = y-1
+						board[x-1][y2] = 0
+						board[x-2][y2] = 0
+						board[x-3][y2] = 0
+
+					if shape == "j" and  y < boardwidth - 1 and board[x+2][y+1] == 0: 
+						y+=1
+						y2 = y-1 
+						board[x][y2] = 0
+						board[x+1][y2] = 0
+						board[x+2][y2] = 0
+						board[x+2][y2-1] = 0
+
+					if shape == "l" and  y < boardwidth - 1 and board[x+3][y+1] == 0: 
+						y+=1
+						y2 = y-1 
+						board[x][y2] = 0
+						board[x+1][y2] = 0
+						board[x+2][y2] = 0
+						board[x+3][y2] = 0
+
+					if shape == "o" and  y < boardwidth - 2 and board[x][y+2] == 0:
+						y +=1
+						y2 = y - 1	
+						board[x][y2] = 0
+
+					if shape == "s" and y < boardwidth - 2 and board[x][y+1] == 0:
+						y +=1
+						y2 = y - 1	
+						board[x][y2] = 0
+						board[x-2][y2] = 0
+						board[x-3][y2] = 0
+
+					if shape == "i" and y < boardwidth - 2 and board[x][y+1] == 0:
+						y += 1
+						y2 = y-1
+						board[x+1][y2] = 0
+						board[x][y2] = 0
+
+				#moves left and checks all the conditions for the shape to move left
+				elif event.key == pygame.K_LEFT:
+
+					if shape == "i2":
+						if y>1 and board[x+1][y-2]==0 and board[x+2][y-2]==0:
+							y -= 1
+							y2 = y + 1
+
+					if shape == "i3":
+						if y>1 and board[x][y-2]==0:
+							y -= 1
+							y2 = y + 1
+							board[x][y2]=0
+							board[x+1][y2]=0
+
+					if shape == "i4":
+						if y>1 and board[x+1][y-2]==0:
+							y -= 1
+							y2 = y + 1
+							board[x][y2+1]=0
+
+					if shape == "j2":
+						if y>1 and board[x+1][y-2]==0 and board[x][y-2]==0:
+							y -= 1
+							y2 = y + 1
+							board[x][y2-1]=0
+
+					if shape == "j3":
+						if y > 0 and board[x][y-1] == 0:
+							y -= 1
+							y2 = y + 1
+							board[x+1][y2] = 0
+							board[x+2][y2] = 0
+
+					if shape == "j4":
+						if y>1 and board[x][y-2] == 0:
+							y -= 1
+							y2 = y + 1
+							board[x+1][y2+1] = 0
+
+					if shape == "t2":
+						if y > 0 and board[x][y-1] == 0:
+							y -= 1
+							y2 = y + 1
+							board[x][y2] = 0
+							board[x+1][y2] = 0
+
+
+					if shape == "t3":
+						if y > 1 and board[x][y-2] == 0:
+							y -= 1
+							y2 = y + 1
+							board[x][y2] = 0
+							board[x][y2+1] = 0
+
+					if shape == "t4":
+						if y > 1 and board[x][y-2] == 0:
+							y -= 1
+							y2 = y + 1
+							board[x][y2] = 0
+							board[x+1][y2] = 0
+							board[x+2][y2] = 0
+
+					if shape == "z2":
+						if y > 0 and board[x][y-1] == 0:
+							y -= 1
+							y2 = y+1
+							board[x][y2] = 0
+							board[x-1][y2+1] = 0
+
+					if shape == "s2":
+						if y > 0 and board[x][y-1] == 0:
+							y -= 1
+							y2 = y+1
+							board[x][y2+1] = 0
+							board[x-1][y2] = 0
+
+					if shape == "t":
+						if y > 1 and board[x][y-2] == 0:
+							y -= 1
+							y2 = y+1
+							board[x][y2]=0
+
+					if shape == "z":
+						if y > 1 and board[x][y-2] == 0:
+							y -= 1
+							y2 = y+1
+							board[x][y2]=0
+
+					elif shape == "j":
+						if y > 1 and board[x+2][y-2] == 0:
+							y -= 1
+							y2 = y+1
+							board[x][y2] = 0
+							board[x+1][y2] = 0
+							board[x+2][y2] = 0
+
+					elif shape == "s":
+						if y > 1 and board[x+1][y-2] == 0:
+							y -=1
+							y2 = y + 1
+							board[x][y2] = 0
+							board[x+1][y2] = 0
+							board[x+2][y2] = 0
+					elif shape == "l2":
+						if y>1 and board[x][y-2] == 0:
+							y = y - 1
+							y2 = y + 1
+
+					elif shape == "l":
+						if y > 0 and board[x][y-1] == 0:
+							y = y - 1
+							y2 = y + 1
+							board[x][y2] = 0
+							board[x+1][y2] = 0
+							board[x+2][y2] = 0
+							board[x+3][y2] = 0
+
+					elif shape == "i":
+						if y > 0 and board[x][y-1] == 0:
+							y = y - 1
+							y2 = y + 1
+							board[x][y2]=0
+							board[x+1][y2]=0
+
+					elif shape == "o":
+						if y > 0 and board[x][y-1] == 0:
+							y = y - 1
+							y2 = y + 1
+							board[x][y2+1] = 0
+
+					
+
+		gameDisplay.fill(black) #fills the background with black
+
+		if x == 2 and board[x-1][y] == 0 and board[x+2][y] == 1: #loses if row is 3 and the rectangles above is 0 and below is 1
+			draw_board(board,white,x,y,x2,y2,shape)
+			end_game()
+		draw_board(board,white,x,y,x2,y2,shape) #draws first for this
+		lines_made(lines) 
+		pygame.display.update() #updates display
+		clock.tick(60) #how fast the game runs, this is 60 fps
+
+		#these if statements check and allow the blocks to fall down or move down the rows. Also checks to clear lines every time it stops falling
+		if shape == "i2":
+			if x<=boardheight-4 and board[x+3][y-1]==0 and board[x+2][y] == 0 and board[x+2][y+1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2+1][y2]=0
+				board[x2+1][y2+1]=0
+				board[x2+1][y2-1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "i3":
+			if x<=boardheight-4 and board[x+3][y]==0 and board[x+1][y-1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2]=0
+				board[x2][y2-1]=0		
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "i4":
+			if x<=boardheight-3 and board[x+2][y]==0 and board[x+2][y+1] == 0 and board[x+2][y-1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2+1]=0
+				board[x2+1][y2]=0
+				board[x2+1][y2-1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+		if shape == "j2":
+			if x<=boardheight-3 and board[x+2][y]==0 and board[x+2][y+1] == 0 and board[x+2][y-1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2+1][y2]=0
+				board[x2+1][y2+1]=0
+				board[x2][y2-1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "j3":
+			if x<=boardheight-4 and board[x+3][y]==0 and board[x+1][y+1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2]=0
+				board[x2][y2+1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "j4":
+			if x<=boardheight-4 and board[x+3][y+1]==0 and board[x+2][y] == 0 and board[x+2][y-1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2+1][y2]=0
+				board[x2+1][y2+1]=0
+				board[x2+1][y2-1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "t2":
+			if x<=boardheight-4 and board[x+3][y]==0 and board[x+2][y+1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2]=0
+				board[x2+1][y2+1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "t3":
+			if x<=boardheight-4 and board[x+3][y]==0 and board[x+2][y+1] == 0 and board[x+2][y-1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2+1][y2]=0
+				board[x2+1][y2+1]=0
+				board[x2+1][y2-1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "t4":
+			if x<=boardheight-4 and board[x+3][y]==0 and board[x+2][y-1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2]=0
+				board[x2+1][y2-1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "z2":
+			if x<=boardheight-3 and board[x+1][y+1]==0 and board[x+2][y] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2]=0
+				board[x2-1][y2+1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "s2":
+			if x<=boardheight-3 and board[x+1][y]==0 and board[x+2][y+1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2-1][y2]=0
+				board[x2][y2+1]=0		
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "l2":
+			if x<=boardheight-2 and board[x+1][y+2]==0 and board[x+1][y-1] == 0 and board[x+1][y+1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2]=0
+				board[x2][y2+2]=0
+				board[x2][y2+1]=0
+				board[x2][y2-1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "t":
+			if x<=boardheight-3 and board[x+2][y]==0 and board[x+2][y-1] == 0 and board[x+2][y+1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2]=0
+				board[x2+1][y2-1]=0
+				board[x2+1][y2+1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "j":
+			if x<=boardheight-4 and board[x+3][y]==0 and board[x+3][y-1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2]=0
+				board[x2+2][y2-1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "i":
+			if x <= boardheight - 4 and board[x+3][y]==0 and board[x+3][y+1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2]=0
+				board[x2+2][y2+1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "o":
+			if x <= boardheight-3 and board[x+2][y]==0 and board[x+2][y+1] == 0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2]=0
+				board[x2][y2+1]=0
+			else:
+				shape = choose_shape()
+				x = 2
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "l":
+			if x <= boardheight-5 and board[x+4][y]==0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2]=0
+			else:
+				shape = choose_shape()
+				x = 2 
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "s":
+			if x <= boardheight-3 and board[x+2][y]==0 and board[x+1][y+1] == 0 and board[x+2][y-1]==0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2] = 0
+				board[x2+1][y2-1] = 0
+				board[x2][y2+1] = 0
+			else:
+				shape = choose_shape()
+				x = 2 
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+
+		if shape == "z":
+			if x <= boardheight-3 and board[x+2][y]==0 and board[x+1][y-1] == 0 and board[x+2][y+1]==0:
+				time.sleep(speed)
+				x+=1
+				x2 = find_x2(shape,x,x2)
+				y2 = y
+				board[x2][y2] = 0
+				board[x2+1][y2+1] = 0
+				board[x2][y2-1] = 0
+			else:
+				shape = choose_shape()
+				x = 2 
+				y = 4
+				clearlines = clear_line(board,lines)
+				board = clearlines[0]
+				lines = clearlines[1]
+		pygame.display.update()
+		clock.tick(60)
+
+
+start_menu()
+#tetris() #runs the game loop
+pygame.quit() #quit game if quit
+quit()
